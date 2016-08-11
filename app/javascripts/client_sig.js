@@ -1,38 +1,36 @@
+var ks; // KeyStore
 
 window.onload = function() {
-  web3.eth.getAccounts(function(err, accs) {
-    if (err != null) {
-      alert("There was an error fetching your accounts.");
-      return;
-    }
+    // Example of seed 'unhappy nerve cancel reject october fix vital pulse cash behind curious bicycle'
+    var seed = prompt('Enter your private key seed', 'Something long');;
+    // the seed is stored in memory and encrypted by this user-defined password
+    var password = prompt('Enter password to encrypt the seed', 'dev_password');
 
-    if (accs.length == 0) {
-      alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
-      return;
-    }
+    lightwallet.keystore.deriveKeyFromPassword(password, function(err, _pwDerivedKey) {
+        pwDerivedKey = _pwDerivedKey;
+        ks = new lightwallet.keystore(seed, pwDerivedKey);
 
-    accounts = accs;
-    account = accounts[0];
+        // Create a custom passwordProvider to prompt the user to enter their
+        // password whenever the hooked web3 provider issues a sendTransaction
+        // call.
+        ks.passwordProvider = function (callback) {
+            var pw = prompt("Please enter password to sign your transaction", "dev_password");
+            callback(null, pw);
+        };
 
-    var provider = new HookedWeb3Provider({
-       // Let's pick the one that came with Truffle
-       host: web3.currentProvider.host,
-       transaction_signer: {
-           hasAddress: function(address, callback) {
-               console.log(address);
-               console.log(callback);
-           },
-           signTransaction: function(tx_params, callback) {
-               console.log(tx_params);
-               console.log(callback);
-           }
-       }
-   });
-   web3.setProvider(provider);
-   refreshBalance();
- });
+        var provider = new HookedWeb3Provider({
+            // Let's pick the one that came with Truffle
+            host: web3.currentProvider.host,
+            transaction_signer: ks
+        });
+        web3.setProvider(provider);
 
+        // Generate the first address out of the seed
+        ks.generateNewAddress(pwDerivedKey);
 
-    refreshBalance();
-
+        accounts = ks.getAddresses();
+        account = "0x" + accounts[0];
+        console.log("Your account is " + account);
+        refreshBalance();
+    });
 }

@@ -19,7 +19,8 @@ module.exports = {
     "images/": "images/"
   },
   rpc: {
-    host: "192.168.1.179",
+//    host: "192.168.1.179",
+    host: "10.93.20.33",
     port: 8545
   }
 };

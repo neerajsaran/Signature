@@ -29,6 +29,7 @@ function sendCoin() {
 
   meta.sendCoin(receiver, amount, {from: account}).then(function() {
     setStatus("Transaction complete!");
+
     refreshBalance();
   }).catch(function(e) {
     console.log(e);
